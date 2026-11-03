@@ -1,3 +1,4 @@
+// src/components/Nav.tsx
 import { NavLink } from "react-router-dom";
 
 const links = [
@@ -26,13 +27,15 @@ export default function Nav() {
           key={link.to}
           to={link.to}
           style={({ isActive }) => ({
-            padding: "0.3rem 0.7rem",
+            padding: "0.35rem 0.8rem",
             borderRadius: "999px",
-            border: "1px solid #ddd",
+            border: "1px solid #718096",
             textDecoration: "none",
             fontSize: "0.85rem",
-            backgroundColor: isActive ? "#222" : "#fff",
-            color: isActive ? "#fff" : "#333",
+            fontWeight: isActive ? 600 : 400,
+            backgroundColor: isActive ? "#3182ce" : "transparent",
+            color: isActive ? "#ffffff" : "inherit",
+            transition: "all 0.15s ease",
           })}
         >
           {link.label}
