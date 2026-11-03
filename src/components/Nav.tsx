@@ -2,14 +2,14 @@
 import { NavLink } from "react-router-dom";
 
 const links = [
-  { to: "/", label: "홈" },
-  { to: "/state", label: "상태 관리" },
-  { to: "/list", label: "리스트 & 조건 렌더링" },
-  { to: "/effect", label: "useEffect & API" },
-  { to: "/form", label: "폼 & 유효성 검사" },
-  { to: "/context", label: "Context & 전역 상태" },
-  { to: "/performance", label: "성능 최적화" },
-  { to: "/error", label: "에러 처리" },
+  { to: "/", num: "00", label: "개요" },
+  { to: "/state", num: "01", label: "상태 & Props" },
+  { to: "/list", num: "02", label: "리스트 & 필터" },
+  { to: "/effect", num: "03", label: "useEffect & API" },
+  { to: "/form", num: "04", label: "폼 & 유효성" },
+  { to: "/context", num: "05", label: "전역 Context" },
+  { to: "/performance", num: "06", label: "성능 최적화" },
+  { to: "/error", num: "07", label: "에러 처리" },
 ];
 
 export default function Nav() {
@@ -17,9 +17,11 @@ export default function Nav() {
     <nav
       style={{
         display: "flex",
-        flexWrap: "wrap",
-        gap: "0.5rem",
-        marginTop: "0.5rem",
+        alignItems: "center",
+        gap: "0.35rem",
+        overflowX: "auto",
+        paddingBottom: "2px",
+        scrollbarWidth: "none",
       }}
     >
       {links.map((link) => (
@@ -27,18 +29,31 @@ export default function Nav() {
           key={link.to}
           to={link.to}
           style={({ isActive }) => ({
-            padding: "0.35rem 0.8rem",
-            borderRadius: "999px",
-            border: "1px solid #718096",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.35rem 0.75rem",
+            borderRadius: "var(--radius-full)",
+            fontSize: "0.82rem",
+            fontWeight: isActive ? 600 : 500,
             textDecoration: "none",
-            fontSize: "0.85rem",
-            fontWeight: isActive ? 600 : 400,
-            backgroundColor: isActive ? "#3182ce" : "transparent",
-            color: isActive ? "#ffffff" : "inherit",
+            whiteSpace: "nowrap",
             transition: "all 0.15s ease",
+            backgroundColor: isActive ? "var(--accent-primary)" : "transparent",
+            color: isActive ? "#ffffff" : "var(--text-secondary)",
+            boxShadow: isActive ? "0 2px 6px rgba(79, 70, 229, 0.28)" : "none",
           })}
         >
-          {link.label}
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.72rem",
+              opacity: 0.75,
+            }}
+          >
+            {link.num}
+          </span>
+          <span>{link.label}</span>
         </NavLink>
       ))}
     </nav>

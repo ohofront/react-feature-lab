@@ -1,5 +1,10 @@
 // src/routes/FormPage.tsx
 import { type FormEvent, useState, useEffect } from "react";
+import {
+  IconAlertTriangle,
+  IconCheck,
+  IconTrash,
+} from "../components/Icons";
 
 export type FormSubmission = {
   id: string;
@@ -13,7 +18,7 @@ const FORM_SUBMISSIONS_STORAGE_KEY = "lab_form_submissions";
 
 const initialSubmissions: FormSubmission[] = [
   {
-    id: "sample-1",
+    id: "sub-1",
     name: "홍길동",
     email: "gildong@example.com",
     agree: true,
@@ -52,8 +57,8 @@ export default function FormPage() {
     const newErrors: string[] = [];
     if (!name.trim()) newErrors.push("이름을 입력해 주세요.");
     if (!email.includes("@"))
-      newErrors.push("올바른 이메일 형식을 입력해 주세요.");
-    if (!agree) newErrors.push("개인정보 수집에 동의해 주세요.");
+      newErrors.push("올바른 이메일 주소(@ 포함)를 입력해 주세요.");
+    if (!agree) newErrors.push("개인정보 수집 및 이용에 동의해야 합니다.");
 
     if (newErrors.length > 0) {
       console.warn("⚠️ 유효성 검사 실패:", newErrors);
@@ -69,14 +74,16 @@ export default function FormPage() {
       name: name.trim(),
       email: email.trim(),
       agree,
-      submittedAt: new Date().toLocaleString("ko-KR"),
+      submittedAt: new Date().toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
     };
 
     setSubmissions((prev) => [newSubmission, ...prev]);
-    setSuccessMessage(
-      `성공: "${name}"님의 정보가 LocalStorage에 안전하게 저장되었습니다.`
-    );
-    console.log("✅ 최종 제출 데이터 저장 완료:", newSubmission);
+    setSuccessMessage(`"${name}"님의 정보가 LocalStorage에 안전하게 저장되었습니다.`);
+    console.log("✅ 저장 완료:", newSubmission);
 
     setName("");
     setEmail("");
@@ -93,185 +100,256 @@ export default function FormPage() {
   };
 
   return (
-    <div>
-      <h2>4. 폼 & 유효성 검사 (LocalStorage 저장)</h2>
-      <p>
-        - input 값은 전부 <b>useState</b>로 관리
-        <br />- <b>onChange</b>로 상태 실시간 업데이트
-        <br />- <b>onSubmit</b>에서 유효성 검사 후 백엔드 API 대신{" "}
-        <b>LocalStorage</b>에 영구 저장합니다.
-      </p>
-
-      <form onSubmit={handleSubmit} style={{ maxWidth: 420 }}>
-        <div style={{ marginBottom: "0.75rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            <b>이름</b>
-          </label>
-          <input
-            value={name}
-            onChange={(e) => {
-              console.log("이름 변경:", e.target.value);
-              setName(e.target.value);
-            }}
-            placeholder="홍길동"
-            style={{
-              width: "100%",
-              boxSizing: "border-box",
-              padding: "0.5rem",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-            }}
-          />
+    <div className="page-container">
+      {/* Header */}
+      <div className="page-header">
+        <div className="page-badge">
+          <span className="badge badge-indigo">CHAPTER 04 · FORMS & VALIDATION</span>
         </div>
+        <h1 className="page-title">폼 입력 제어 & 실시간 유효성 검증</h1>
+        <p className="page-subtitle">
+          React의 단일 진실 공급원(Single Source of Truth) 원칙에 따른 제어 컴포넌트(Controlled Component)
+          패턴을 적용하고, 폼 검증과 <code>LocalStorage</code> 데이터 지속성을 확인합니다.
+        </p>
+      </div>
 
-        <div style={{ marginBottom: "0.75rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            <b>이메일</b>
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => {
-              console.log("이메일 변경:", e.target.value);
-              setEmail(e.target.value);
-            }}
-            placeholder="example@email.com"
-            style={{
-              width: "100%",
-              boxSizing: "border-box",
-              padding: "0.5rem",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-            }}
-          />
-        </div>
+      {/* Concept Box */}
+      <div className="concept-box">
+        <p>
+          💡 <b>핵심 원리:</b> <code>&lt;input value=&#123;state&#125; onChange=&#123;handler&#125; /&gt;</code> 구조를
+          통해 리액트 컴포넌트가 모든 입력값의 상태를 완전히 지배합니다. <code>e.preventDefault()</code>로
+          브라우저 고유의 전체 새로고침 동작을 차단하고 클라이언트 검증을 먼저 진행합니다.
+        </p>
+      </div>
 
-        <div style={{ marginBottom: "0.75rem" }}>
-          <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-            <input
-              type="checkbox"
-              checked={agree}
-              onChange={(e) => {
-                console.log("동의 체크:", e.target.checked);
-                setAgree(e.target.checked);
-              }}
-            />
-            개인정보 수집 및 이용에 동의합니다.
-          </label>
-        </div>
+      {/* 2-Column Split: Form on Left, Submissions on Right */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: "1.5rem",
+        }}
+      >
+        {/* Left: Input Form Card */}
+        <div className="lab-card">
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "0.25rem" }}>
+            사용자 등록 폼
+          </h3>
+          <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>
+            입력값은 실시간으로 React 상태에 바인딩됩니다.
+          </p>
 
-        {errors.length > 0 && (
-          <div
-            style={{
-              backgroundColor: "#fff5f5",
-              border: "1px solid #feb2b2",
-              color: "#c53030",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "4px",
-              marginBottom: "0.75rem",
-            }}
-          >
-            <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
-              {errors.map((err, idx) => (
-                <li key={idx}>{err}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {successMessage && (
-          <div
-            style={{
-              backgroundColor: "#f0fff4",
-              border: "1px solid #9ae6b4",
-              color: "#276749",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "4px",
-              marginBottom: "0.75rem",
-            }}
-          >
-            {successMessage}
-          </div>
-        )}
-
-        <button type="submit" style={{ width: "100%", padding: "0.6rem" }}>
-          제출하기
-        </button>
-      </form>
-
-      {/* 제출된 데이터 목록 섹션 */}
-      <section style={{ marginTop: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-          }}
-        >
-          <h3>📥 최근 제출된 내역 ({submissions.length}건)</h3>
-          {submissions.length > 0 && (
-            <button
-              onClick={handleClearSubmissions}
-              style={{ fontSize: "0.8rem", padding: "0.3rem 0.6rem" }}
-            >
-              전체 비우기
-            </button>
-          )}
-        </div>
-
-        {submissions.length === 0 ? (
-          <p style={{ color: "#718096" }}>제출된 데이터가 없습니다.</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {submissions.map((sub) => (
-              <li
-                key={sub.id}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div>
+              <label
                 style={{
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "6px",
-                  padding: "0.75rem 1rem",
-                  marginBottom: "0.5rem",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: "block",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  marginBottom: "0.35rem",
+                  color: "var(--text-secondary)",
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: "bold" }}>{sub.name}</div>
-                  <div style={{ fontSize: "0.85rem", opacity: 0.8 }}>
-                    이메일: {sub.email}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", opacity: 0.6 }}>
-                    제출일시: {sub.submittedAt} (동의완료 ✅)
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteSubmission(sub.id)}
-                  style={{ fontSize: "0.8rem", padding: "0.2rem 0.5rem" }}
-                >
-                  삭제
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                이름 <span style={{ color: "var(--color-danger)" }}>*</span>
+              </label>
+              <input
+                className="input-control"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.length > 0) setErrors([]);
+                }}
+                placeholder="예: 홍길동"
+              />
+            </div>
 
-      <details style={{ marginTop: "1rem" }}>
-        <summary>설명 요약</summary>
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  marginBottom: "0.35rem",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                이메일 주소 <span style={{ color: "var(--color-danger)" }}>*</span>
+              </label>
+              <input
+                type="email"
+                className="input-control"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.length > 0) setErrors([]);
+                }}
+                placeholder="developer@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={agree}
+                  onChange={(e) => {
+                    setAgree(e.target.checked);
+                    if (errors.length > 0) setErrors([]);
+                  }}
+                />
+                <span>개인정보 수집 및 이용에 동의합니다. (필수)</span>
+              </label>
+            </div>
+
+            {/* Error Message Box */}
+            {errors.length > 0 && (
+              <div
+                style={{
+                  padding: "0.75rem 1rem",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "var(--color-danger-bg)",
+                  color: "var(--color-danger-text)",
+                  border: "1px solid var(--color-danger-border)",
+                  fontSize: "0.85rem",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontWeight: 700, marginBottom: "0.25rem" }}>
+                  <IconAlertTriangle size={15} />
+                  <span>입력 확인이 필요합니다:</span>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: "1.2rem", lineHeight: 1.5 }}>
+                  {errors.map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Success Banner */}
+            {successMessage && (
+              <div
+                style={{
+                  padding: "0.75rem 1rem",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "var(--color-success-bg)",
+                  color: "var(--color-success-text)",
+                  border: "1px solid var(--color-success-border)",
+                  fontSize: "0.85rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <IconCheck size={16} />
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            <button type="submit" className="btn btn-primary" style={{ marginTop: "0.5rem" }}>
+              데이터 제출 및 로컬 저장
+            </button>
+          </form>
+        </div>
+
+        {/* Right: Submissions History Card */}
+        <div className="lab-card">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "1rem",
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: "1.05rem", fontWeight: 700 }}>
+                제출 이력 보관소
+              </h3>
+              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                LocalStorage에 저장된 영구 데이터 ({submissions.length}건)
+              </p>
+            </div>
+            {submissions.length > 0 && (
+              <button
+                onClick={handleClearSubmissions}
+                className="btn btn-ghost btn-sm"
+                title="모든 제출 내역 삭제"
+              >
+                전체 비우기
+              </button>
+            )}
+          </div>
+
+          {submissions.length === 0 ? (
+            <div
+              style={{
+                padding: "2.5rem 1rem",
+                textAlign: "center",
+                backgroundColor: "var(--bg-subtle)",
+                borderRadius: "var(--radius-md)",
+                border: "1px dashed var(--border-default)",
+              }}
+            >
+              <div style={{ color: "var(--text-muted)", fontSize: "0.88rem" }}>
+                아직 제출된 데이터가 없습니다.
+              </div>
+              <div style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginTop: "0.25rem" }}>
+                왼쪽 폼에서 새 데이터를 작성해 보세요.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", maxHeight: 380, overflowY: "auto" }}>
+              {submissions.map((sub) => (
+                <div
+                  key={sub.id}
+                  style={{
+                    padding: "0.85rem 1rem",
+                    backgroundColor: "var(--bg-subtle)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--text-primary)" }}>
+                      {sub.name}
+                    </div>
+                    <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>
+                      {sub.email}
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                      제출 시각: {sub.submittedAt} · 동의 완료
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteSubmission(sub.id)}
+                    className="btn btn-ghost btn-sm"
+                    title="기록 삭제"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    <IconTrash size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Summary Accordion */}
+      <details className="lab-summary">
+        <summary>학습 핵심 요약 열기</summary>
         <ul>
           <li>
-            폼 제출 시 <code>e.preventDefault()</code>로 페이지 새로고침을
-            방지합니다.
+            <code>e.preventDefault()</code>로 HTTP 기본 요청 방지 및 SPA 내부 상태 전환 흐름을 통제합니다.
           </li>
           <li>
-            입력값 유효성을 검사하여 에러 목록을 화면에 동적으로 표시합니다.
+            사용자 입력 유효성 검사(이름, 이메일 형식, 동의 여부) 후 적절한 피드백 메시지를 렌더링합니다.
           </li>
           <li>
-            실제 API가 없어도 <code>LocalStorage</code>에 데이터를 저장하여
-            영속적인 데이터 흐름을 체험할 수 있습니다.
+            실제 백엔드가 없는 환경에서도 <code>LocalStorage</code>를 데이터 레이어로 활용하여 등록/조회/삭제 흐름을 온전히 학습합니다.
           </li>
         </ul>
       </details>

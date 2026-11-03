@@ -26,28 +26,16 @@ export function ThemeProvider({ children }: Props) {
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => {
-      const next = prev === "light" ? "dark" : "light";
-      console.log("테마 변경:", prev, "→", next);
-      return next;
-    });
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div
-        style={{
-          backgroundColor: theme === "light" ? "#ffffff" : "#1a202c",
-          color: theme === "light" ? "#2d3748" : "#f7fafc",
-          minHeight: "100vh",
-          transition: "background-color 0.2s ease, color 0.2s ease",
-        }}
-      >
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }
